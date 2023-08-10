@@ -8,6 +8,7 @@ import random
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 800
 GRID_WIDTH = 10
+offset = 10
 
 #display
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -36,9 +37,10 @@ orbPos = (0,0)
 
 SPAWN_ORB = pygame.USEREVENT+1
 ORB_COLLISION = pygame.USEREVENT+2
+MOVE_SNAKE = pygame.USEREVENT+3
 
 def drawGrid(gameGrid):
-    offset = 10
+    global offset
     xtempPos = offset
     ytempPos = offset
     rectSize = (SCREEN_HEIGHT/gameGrid.getSize())-(offset+1)
@@ -74,32 +76,36 @@ def moveSnake():
         prevTile = snakeChain[0]
         snakeChain.pop(0)
 
-pygame.time.set_timer(SPAWN_ORB, 10000)
+pygame.time.set_timer(SPAWN_ORB, 5000)
+pygame.time.set_timer(MOVE_SNAKE, 500)
 currCircle = 0
 running = True
 while running:
     screen.fill((0,0,0))
     drawGrid(gameGrid)
-    moveSnake()
-
-    key = pygame.key.get_pressed()
-    if key[pygame.K_a]:
-        direction.setXY(-1, 0)
-    if key[pygame.K_w]:
-        direction.setXY(0, -1)
-    if key[pygame.K_s]:
-        direction.setXY(0, 1)
-    if key[pygame.K_d]:
-        direction.setXY(1, 0)
 
     for event in pygame.event.get():
+        if event.type == pygame.KEYUP and event.key == pygame.K_a:
+            direction.setXY(-1, 0)
+            moveSnake()
+        elif event.type == pygame.KEYUP and event.key == pygame.K_w:
+            direction.setXY(0, -1)
+            moveSnake()
+        elif event.type == pygame.KEYUP and event.key == pygame.K_s:
+            direction.setXY(0, 1)
+            moveSnake()
+        elif event.type == pygame.KEYUP and event.key == pygame.K_d:
+            direction.setXY(1, 0)
+            moveSnake()
         if event.type == pygame.QUIT:
             running = False
         if event.type == SPAWN_ORB and not orbActive:
             randTile = gameGrid.grid[random.randint(0, GRID_WIDTH-1)][random.randint(0, GRID_WIDTH-1)][0]
             orbActive = True
             orbPos = randTile.getRect().center
-            currCircle = pygame.draw.circle(screen, (0,0,255), (randTile.getRect().center), 10)
+            currCircle = pygame.draw.circle(screen, (0,0,255), (randTile.getRect().center), 20)
+        if event.type == MOVE_SNAKE:
+            moveSnake()
 
     if currCircle != 0 and gameGrid.grid[snakePosY][snakePosX][0].getRect().colliderect(currCircle) and orbActive == True:
         snakeChain.append(prevTile)
@@ -110,7 +116,7 @@ while running:
     
     pygame.display.update()
     #pygame.time.delay(50)
-    clock.tick(15)
+    clock.tick(30)
     
 
 pygame.quit()
